@@ -8,8 +8,9 @@ from globalVariables import (
     FIRE_COLOR,
     WHITE
 )
-from pid import PID
+from controller import Controller
 from utils import *
+
 
 class Rocket(object):
     def __init__(self):
@@ -22,7 +23,7 @@ class Rocket(object):
             yMetersToPixels(200)
             ]
         # PID, and pid output.
-        self.pid = PID(SETPOINT)
+        self.controller = Controller(SETPOINT, 1)
         self.thrust = 0 # N
         # physics
         self.mass = 1 # Kg
@@ -30,7 +31,7 @@ class Rocket(object):
         self.dy = 0 # Velocity
         self.y = 200 # In meters
     def setTarget(self, target):
-        self.pid.setTarget(target)
+        self.controller.setTarget(target)
     def set_ddy(self, thrust):
         self.ddy = G + thrust/self.mass
     def get_ddy(self):
@@ -44,7 +45,8 @@ class Rocket(object):
     def get_y(self):
         return self.y
     def update(self, time):
-        thrust = self.pid.compute(self.y, time)
+        thrust = self.controller.pdCompute(self.y, time)
+        # thrust = self.controller.lqrCompute(self.y, self.dy, time)
         self.thrust = -thrust
         self.set_ddy(thrust)
         self.set_dy(time)
